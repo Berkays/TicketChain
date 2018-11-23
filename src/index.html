@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Ticket Chain</title>
+
+
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+
+  <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-12 col-sm-8 col-sm-push-2">
+        <h1 class="text-center">Ticket Chain</h1>
+        <hr />
+        <br />
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="orgName" class="col-xs-2 col-sm-2 col-md-2">Organization name:</label>
+      <input type="text" class="col-xs-4 col-sm-4 col-md-4" id="orgName" name="orgName">
+    </div>
+    <div class="row">
+      <br />
+      <button type="button" class="btn btn-primary" id="orgAddBtn">Add Organization</button>
+    </div>
+
+    <div class="row">
+      <h2>Organizations</h2>
+      <hr />
+      <br />
+      <button type="button" class="btn btn-primary" id="orgListBtn">List Organizations</button>
+      <br />
+    </div>
+
+    <ul id="orgList" class="list-group">
+    </ul>
+
+    <div id="orgListStatus">
+      Currently there are no organizations.
+    </div>
+
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/web3.min.js"></script>
+  <script src="js/truffle-contract.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+
+</html>
