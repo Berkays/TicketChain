@@ -1,166 +1,164 @@
 App = {
-  web3Provider: null,
-  contracts: {},
+    web3Provider: null,
+    contracts: {},
 
-  init: async function () {
+    init: async function () {
 
-    //TODO: List organizations
-    return await App.initWeb3();
-  },
+        //TODO: List organizations
+        return await App.initWeb3();
+    },
 
-  initWeb3: async function () {
-    // Modern dapp browsers...
-    if (window.ethereum) {
-      App.web3Provider = window.ethereum;
-      try {
-        // Request account access
-        await window.ethereum.enable();
-      } catch (error) {
-        // User denied account access...
-        console.error("User denied account access")
-      }
-    }
-    // Legacy dapp browsers...
-    else if (window.web3) {
-      App.web3Provider = window.web3.currentProvider;
-    }
-    // If no injected web3 instance is detected, fall back to Ganache
-    else {
-      App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
-    }
-    web3 = new Web3(App.web3Provider);
+    initWeb3: async function () {
+        // Modern dapp browsers...
+        if (window.ethereum) {
+            App.web3Provider = window.ethereum;
+            try {
+                // Request account access
+                await window.ethereum.enable();
+            } catch (error) {
+                // User denied account access...
+                console.error("User denied account access")
+            }
+        }
+        // Legacy dapp browsers...
+        else if (window.web3) {
+            App.web3Provider = window.web3.currentProvider;
+        }
+        // If no injected web3 instance is detected, fall back to Ganache
+        else {
+            App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
+        }
+        web3 = new Web3(App.web3Provider);
 
-    return App.initContract();
-  },
+        return App.initContract();
+    },
 
-  initContract: function () {
-    $.getJSON('Attend.json', function (data) {
-      // Get the necessary contract artifact file and instantiate it with truffle-contract
-      var AttendArtifact = data;
-      App.contracts.Attend = TruffleContract(AttendArtifact);
+    initContract: function () {
+        $.getJSON('Attend.json', function (data) {
+            // Get the necessary contract artifact file and instantiate it with truffle-contract
+            var AttendArtifact = data;
+            App.contracts.Attend = TruffleContract(AttendArtifact);
 
-      App.contracts.Attend.setProvider(App.web3Provider);
+            App.contracts.Attend.setProvider(App.web3Provider);
 
-      return App.markAttended();
-    });
+            return App.listOrganizations();
+        });
 
-    return App.bindEvents();
-  },
+        return App.bindEvents();
+    },
 
-  bindEvents: function () {
-    $(document).on('click', '.btn-attend', App.handleAttend);
-    $(document).on('click', '#orgAddBtn', App.handleAddOrg);
-    $(document).on('click', '#orgListBtn', App.handleListOrg);
-  },
+    bindEvents: function () {
+        $(document).on('click', '.btn-attend', App.handleAttend);
+        $(document).on('click', '#orgAddBtn', App.handleAddOrg);
+        $(document).on('click', '#orgListBtn', App.handleListOrg);
+    },
 
-  markAttended: function (organizations, account) {
-    console.log("Mark attendend.");
-    // var adoptionInstance;
+    handleAttend: function (event) {
+        event.preventDefault();
 
-    // App.contracts.Adoption.deployed().then(function (instance) {
-    //   adoptionInstance = instance;
 
-    //   return adoptionInstance.getAdopters.call();
-    // }).then(function (adopters) {
-    //   for (i = 0; i < adopters.length; i++) {
-    //     if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
-    //       $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
-    //     }
-    //   }
-    // }).catch(function (err) {
-    //   console.log(err.message);
-    // });
-  },
+        var orgId = $(event.target).parent().attr('id');
+        console.log(orgId);
 
-  handleAttend: function (event) {
-    event.preventDefault();
+        var attendInstance;
 
-    var orgId = parseInt($(event.target).parent().data('id'));
-    // var petId = parseInt($(event.target).data('id'));
+        web3.eth.getAccounts(function (error, accounts) {
+            if (error)
+                console.log(error);
 
-    // var adoptionInstance;
+            var account = accounts[0];
 
-    // web3.eth.getAccounts(function (error, accounts) {
-    //   if (error) {
-    //     console.log(error);
-    //   }
+            App.contracts.Attend.deployed().then(function (instance) {
+                attendInstance = instance;
 
-    //   var account = accounts[0];
+                return attendInstance.AttendOrganization(orgId, { from: account });
+            }).then(function (result) {
+                $(event.target).text("Attending Organization");
+                return 1;
+            }).catch(function (err) {
+                console.log(err.message);
+            });
+        });
+    },
 
-    //   App.contracts.Adoption.deployed().then(function (instance) {
-    //     adoptionInstance = instance;
+    handleAddOrg: function (event) {
+        event.preventDefault();
 
-    //     // Execute adopt as a transaction by sending account
-    //     return adoptionInstance.adopt(petId, { from: account });
-    //   }).then(function (result) {
-    //     return App.markAdopted();
-    //   }).catch(function (err) {
-    //     console.log(err.message);
-    //   });
-    // });
-  },
+        var org = { orgName: $("#orgName").val(), maxAttendance: 100 };
+        var attendInstance;
 
-  handleAddOrg: function (event) {
-    event.preventDefault();
+        web3.eth.getAccounts(function (error, accounts) {
+            if (error) {
+                console.log(error);
+            }
 
-    var org = { orgName: $("#orgName").val(), maxAttendance: 100 };
-    var attendInstance;
+            var account = accounts[0];
 
-    web3.eth.getAccounts(function (error, accounts) {
-      if (error) {
-        console.log(error);
-      }
+            App.contracts.Attend.deployed().then(function (instance) {
+                attendInstance = instance;
 
-      var account = accounts[0];
+                return attendInstance.addOrganization(org.orgName, org.maxAttendance);
+            }).then(function () {
+                console.log("Organization added: " + org.orgName + ", " + org.maxAttendance);
+                //App.refreshOrganizations();
+            }).catch(function (err) {
+                console.log(err.message);
+            });
+        });
+    },
 
-      App.contracts.Attend.deployed().then(function (instance) {
-        attendInstance = instance;
+    handleListOrg: function () {
+        event.preventDefault();
 
-        return attendInstance.addOrganization(org.orgName, org.maxAttendance);
-      }).then(function () {
-        console.log("Organization added: " + org.orgName + ", " + org.maxAttendance);
-        //App.refreshOrganizations();
-      }).catch(function (err) {
-        console.log(err.message);
-      });
-    });
-  },
+        App.listOrganizations();
+    },
 
-  handleListOrg: function () {
-    var attendInstance;
-    App.contracts.Attend.deployed().then(function (instance) {
-      attendInstance = instance;
+    listOrganizations: function () {
+        var attendInstance;
+        App.contracts.Attend.deployed().then(async function (instance) {
+            attendInstance = instance;
+            return attendInstance.getOrganizationCount.call(); //Return Organization Count
+        }).then(async function (orgCount) {
+            var orgList = [];
 
-      return attendInstance.getOrganizationCount();
-    }).then(async function (orgCount) {
-      var orgList = [];
+            console.log("Count: " + orgCount);
+            for (let index = 0; index < orgCount; index++) {
+                var org = await attendInstance.getOrganization.call(index + 1);
+                orgList[index] = org;
+            }
+            return orgList;
+            // return attendInstance.getOrganization.call(1);
+        }).then(function (orgList) {
+            if (orgList.length == 0) {
+                $("#orgListStatus").show();
+                return;
+            }
+            else {
+                $("#orgListStatus").hide();
+            }
 
-      for (let index = 1; index < orgCount + 1; index++) {
-        var org = await attendInstance.getOrganization(index)
-        orgList[index] = org;
-      }
-      return orgList;
-    }).then(function (orgList) {
-      $("#orglist").empty();
-      console.log(orgList);
-      orgList.forEach(org => {
-        console.log(org);
-        $("#orgList").append(
-          $("<li>").attr("id", org[0]).attr("class", "list-group-item").text(org[0]).append(
-            $("<button>").attr("type", "button").attr("class", "btn btn-primary pull-right .btn-attend").text("Attend")));
-      });
-      if (orgList.length != 0) {
-        $("#orgListStatus").hide();
-      }
-    }).catch(function (err) {
-      console.log(err.message);
-    });
-  }
+            $("#orgList").empty(); //Clear html list
 
-};
+            orgList.forEach(org => {
+                var orgName = org[0];
+                var orgId = org[1];
+                // var orgId = web3.fromWei(org[1]).toNumber();
+                var orgAttendance = web3.fromWei(org[2]).toNumber();
+                var orgMaxAttendance = web3.fromWei(org[3]).toNumber();
+                $("#orgList").append(
+                    $("<li>").attr("id", orgId).attr("class", "list-group-item").text(orgName).append(
+                        $("<button>").attr("type", "button").attr("class", "btn btn-primary pull-right btn-attend").text("Attend")));
+            });
+
+        }).catch(function (err) {
+            console.log(err.message);
+        });
+    },
+
+}; //End of App
 
 $(function () {
-  $(window).load(function () {
-    App.init();
-  });
+    $(window).load(function () {
+        App.init();
+    });
 });
