@@ -1,5 +1,4 @@
 pragma solidity ^0.4.17;
-pragma experimental ABIEncoderV2;
 
 contract Attend {
     
@@ -15,7 +14,7 @@ contract Attend {
     }
 
     mapping(uint => Organization) private organizations;
-    uint public organizationCount;
+    uint private organizationCount;
 
     constructor () public {
        organizationCount = 0;
@@ -42,7 +41,7 @@ contract Attend {
         _;
     }
 
-    function addOrganization(string _name,uint _maxAttendance) public {
+    function addOrganization(string memory _name,uint _maxAttendance) public {
         organizationCount++;
         organizations[organizationCount] = Organization(_name,_maxAttendance,0);
     }
@@ -57,10 +56,10 @@ contract Attend {
         delete organizations[orgId].Attenders[msg.sender];
     }
 
-    function getOrganization(uint orgId) public view organizationExist(orgId) returns (string,uint,uint)
+    function getOrganization(uint orgId) public view organizationExist(orgId) returns (string memory,uint,uint,uint)
     {
         Organization storage org = organizations[orgId];
-        return (org.name,org.attendance_count,org.max_attendance);
+        return (org.name,orgId,org.attendance_count,org.max_attendance);
     }
 
     function getOrganizationCount() public view returns (uint) {
