@@ -49,8 +49,8 @@ App = {
 
     bindEvents: function () {
         $(document).on('click', '.btn-attend', App.handleAttend);
-        $(document).on('click', '#orgAddBtn', App.handleAddOrg);
-        $(document).on('click', '#orgListBtn', App.handleListOrg);
+        $(document).on('click', '#addOrg_btn', App.handleAddOrg);
+        $(document).on('click', '#listOrg_btn', App.handleListOrg);
     },
 
     handleAttend: function (event) {
@@ -84,7 +84,11 @@ App = {
     handleAddOrg: function (event) {
         event.preventDefault();
 
-        var org = { orgName: $("#orgName").val(), maxAttendance: 100 };
+        var org = {
+            name: $("#addOrg_name").val(),
+            maxAttendance: $("#addOrg_attendanceLimit").val(),
+            date: Date.parse($("#addOrg_date").val())
+        };
         var attendInstance;
 
         web3.eth.getAccounts(function (error, accounts) {
@@ -96,11 +100,10 @@ App = {
 
             App.contracts.Attend.deployed().then(function (instance) {
                 attendInstance = instance;
-
-                return attendInstance.addOrganization(org.orgName, org.maxAttendance);
+                console.log(org);
+                return attendInstance.addOrganization(org.name, org.maxAttendance,org.date);
             }).then(function () {
-                console.log("Organization added: " + org.orgName + ", " + org.maxAttendance);
-                //App.refreshOrganizations();
+                console.log("Organization added: " + org.name + ", " + org.maxAttendance + ", " + org.date);
             }).catch(function (err) {
                 console.log(err.message);
             });
@@ -130,30 +133,39 @@ App = {
             // return attendInstance.getOrganization.call(1);
         }).then(function (orgList) {
             if (orgList.length == 0) {
-                $("#orgListStatus").show();
+                $("#listOrg_status").show();
                 return;
             }
             else {
-                $("#orgListStatus").hide();
+                $("#listOrg_status").hide();
             }
 
-            $("#orgList").empty(); //Clear html list
+            $("#listOrg_list").empty(); //Clear html list
 
             orgList.forEach(org => {
                 var orgName = org[0];
                 var orgId = org[1];
-                // var orgId = web3.fromWei(org[1]).toNumber();
-                var orgAttendance = web3.fromWei(org[2]).toNumber();
-                var orgMaxAttendance = web3.fromWei(org[3]).toNumber();
-                $("#orgList").append(
-                    $("<li>").attr("id", orgId).attr("class", "list-group-item").text(orgName).append(
-                        $("<button>").attr("type", "button").attr("class", "btn btn-primary pull-right btn-attend").text("Attend")));
+                var orgAttendance = web3.fromWei(org[2],'wei').toNumber();
+                var orgMaxAttendance = web3.fromWei(org[3],'wei').toNumber();
+                var orgDate = new Date(web3.fromWei(org[4],'wei').toNumber());
+                App.generateListItem(orgName, orgId, orgAttendance, orgMaxAttendance, orgDate);
             });
 
         }).catch(function (err) {
             console.log(err.message);
         });
     },
+
+    generateListItem: function (orgName, orgId, orgAttendance, orgMaxAttendance, orgDate) {
+        $("#listOrg_list").append(
+            $("<li>").attr("id", orgId).attr("class", "list-group-item").append(
+                $("<div>").attr("class", "d-flex align-items-center").append(
+                    $("<span>").attr("class", "mr-auto p-1 flex-column").append(
+                        $("<div>").attr("class", "p-1").text("Name: " + orgName)).append(
+                            $("<div>").attr("class", "p-1").text("Attendance: " + orgAttendance + "/" + orgMaxAttendance)).append(
+                                $("<div>").attr("class", "p-1").text("Date: " + orgDate))).append(
+                                    $("<button>").attr("type", "button").attr("class", "btn btn-primary p-2 btn-attend").text("Attend"))));
+    }
 
 }; //End of App
 

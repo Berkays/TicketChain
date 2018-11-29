@@ -9,6 +9,7 @@ contract Attend {
     {
         string name;
         uint max_attendance;
+        uint date;
         uint attendance_count;
         mapping(address => bool) Attenders;
     }
@@ -41,9 +42,9 @@ contract Attend {
         _;
     }
 
-    function addOrganization(string memory _name,uint _maxAttendance) public {
+    function addOrganization(string memory _name,uint _maxAttendance,uint _date) public {
         organizationCount++;
-        organizations[organizationCount] = Organization(_name,_maxAttendance,0);
+        organizations[organizationCount] = Organization(_name,_maxAttendance,_date,0);
     }
 
     function AttendOrganization(uint orgId) public ticketAvailable(orgId) notAttended(orgId) returns (uint) {
@@ -56,10 +57,10 @@ contract Attend {
         delete organizations[orgId].Attenders[msg.sender];
     }
 
-    function getOrganization(uint orgId) public view organizationExist(orgId) returns (string memory,uint,uint,uint)
+    function getOrganization(uint orgId) public view organizationExist(orgId) returns (string memory,uint,uint,uint,uint)
     {
         Organization storage org = organizations[orgId];
-        return (org.name,orgId,org.attendance_count,org.max_attendance);
+        return (org.name,orgId,org.attendance_count,org.max_attendance,org.date);
     }
 
     function getOrganizationCount() public view returns (uint) {
