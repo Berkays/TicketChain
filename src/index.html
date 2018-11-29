@@ -4,8 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Ticket Chain</title>
 
 
@@ -20,48 +19,76 @@
 
 <body>
     <div class="container">
-        <div class="row">
-            <div class="col-xs-12 col-sm-8 col-sm-push-2">
+        <div class="row justify-content-md-center">
+            <div class="col">
                 <h1 class="text-center">Ticket Chain</h1>
                 <hr />
                 <br />
             </div>
         </div>
 
-        <div class="row">
-            <label for="orgName" class="col-xs-2 col-sm-2 col-md-2">Organization name:</label>
-            <input type="text" class="col-xs-4 col-sm-4 col-md-4" id="orgName" name="orgName">
+        <div class="row justify-content-md-center">
+            <form class="col-6 border border-1 rounded p-4 shadow">
+                <div class="form-group">
+                    <p class="h4 text-center">Arrange Organization</p>
+                    <hr />
+                    <label for="addOrg_name">Organization Name:</label>
+                    <input type="text" id="addOrg_name" class="form-control" placeholder="Organization Name">
+                </div>
+                <div class="form-group">
+                    <label for="addOrg_attendanceLimit">Organization Attendance Limit:</label>
+                    <input type="number" id="addOrg_attendanceLimit" class="form-control" placeholder="Max attendance"
+                        min="1">
+                </div>
+                <div class="form-group">
+                    <label for="addOrg_date">Organization Date:</label>
+                    <div class='form control input-group date'>
+                        <input type='text' id="addOrg_date" class="form-control" placeholder="Enter Organization Date" />
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+                <button type="button" id="addOrg_btn" class="btn btn-primary">Add Organization</button>
+            </form>
         </div>
-        <div class="row">
-            <br />
-            <button type="button" class="btn btn-primary" id="orgAddBtn">Add Organization</button>
+
+        <div class="row justify-content-md-center row-space">
+            <div class="col-6 border border-1 rounded p-4 shadow">
+                <div class="form-group">
+                    <p class="h4 text-center">Current Organizations</p>
+                    <hr />
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" id="listOrg_btn">List Organizations</button>
+                </div>
+                <div class="form-group">
+
+                    <ul id="listOrg_list" class="list-group">
+                    </ul>
+                </div>
+                <div class="form-group">
+                    <div id="listOrg_status">
+                        Currently there are no organizations.
+                    </div>
+                </div>
+            </div>
         </div>
-
-
-        <div class="row">
-            <h2>Organizations</h2>
-            <hr />
-            <br />
-            <button type="button" class="btn btn-primary" id="orgListBtn">List Organizations</button>
-            <br />
-        </div>
-
-        <ul id="orgList" class="list-group">
-        </ul>
-
-        <div id="orgListStatus">
-            Currently there are no organizations.
-        </div>
-
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="js/main.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
     <script src="js/app.js"></script>
-
 </body>
+
+<footer>
+    <div class="footer" style="margin-top:5em; height:10em; background-color:bisque;">
+    </div>
+</footer>
 
 </html>

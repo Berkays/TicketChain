@@ -1,5 +1,13 @@
-.list-group-item {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-    padding-bottom: 2em;
+.btn-space
+{
+    margin-top: 1em;
 }
+
+.row-space {
+    margin-top: 5em;    
+}
+
+/* .row{
+    margin-left: 100px;
+    margin-right: 100px;
+} */
