@@ -1,10 +1,11 @@
+var moment = require('moment');
+
 App = {
     web3Provider: null,
     contracts: {},
 
     init: async function () {
 
-        //TODO: List organizations
         return await App.initWeb3();
     },
 
@@ -49,6 +50,7 @@ App = {
 
     bindEvents: function () {
         $(document).on('click', '.btn-attend', App.handleAttend);
+        $(document).on('click', '.btn-cancelAttend', App.handleCancel);
         $(document).on('click', '#addOrg_btn', App.handleAddOrg);
         $(document).on('click', '#listOrg_btn', App.handleListOrg);
     },
@@ -56,9 +58,7 @@ App = {
     handleAttend: function (event) {
         event.preventDefault();
 
-
-        var orgId = $(event.target).parent().attr('id');
-        console.log(orgId);
+        var orgId = $(event.target).closest("li").attr('id');
 
         var attendInstance;
 
@@ -71,10 +71,36 @@ App = {
             App.contracts.Attend.deployed().then(function (instance) {
                 attendInstance = instance;
 
-                return attendInstance.AttendOrganization(orgId, { from: account });
-            }).then(function (result) {
-                $(event.target).text("Attending Organization");
-                return 1;
+                return attendInstance.AttendOrganization(orgId);
+            }).then(function () {
+                console.log("Attending Organization");
+                App.listOrganizations();
+            }).catch(function (err) {
+                console.log(err.message);
+            });
+        });
+    },
+
+    handleCancel: function (event) {
+        event.preventDefault();
+
+        var orgId = $(event.target).closest("li").attr('id');
+
+        var attendInstance;
+
+        web3.eth.getAccounts(function (error, accounts) {
+            if (error)
+                console.log(error);
+
+            var account = accounts[0];
+
+            App.contracts.Attend.deployed().then(function (instance) {
+                attendInstance = instance;
+
+                return attendInstance.CancelAttendance(orgId);
+            }).then(function () {
+                console.log("Canceled Attending Organization");
+                App.listOrganizations();
             }).catch(function (err) {
                 console.log(err.message);
             });
@@ -87,7 +113,7 @@ App = {
         var org = {
             name: $("#addOrg_name").val(),
             maxAttendance: $("#addOrg_attendanceLimit").val(),
-            date: Date.parse($("#addOrg_date").val())
+            date: moment($("#addOrg_date").val(), "DD-MM-YYYY HH:mm").format('x')
         };
         var attendInstance;
 
@@ -101,9 +127,10 @@ App = {
             App.contracts.Attend.deployed().then(function (instance) {
                 attendInstance = instance;
                 console.log(org);
-                return attendInstance.addOrganization(org.name, org.maxAttendance,org.date);
+                return attendInstance.addOrganization(org.name, org.maxAttendance, org.date);
             }).then(function () {
                 console.log("Organization added: " + org.name + ", " + org.maxAttendance + ", " + org.date);
+                App.listOrganizations();
             }).catch(function (err) {
                 console.log(err.message);
             });
@@ -124,13 +151,11 @@ App = {
         }).then(async function (orgCount) {
             var orgList = [];
 
-            console.log("Count: " + orgCount);
             for (let index = 0; index < orgCount; index++) {
                 var org = await attendInstance.getOrganization.call(index + 1);
                 orgList[index] = org;
             }
             return orgList;
-            // return attendInstance.getOrganization.call(1);
         }).then(function (orgList) {
             if (orgList.length == 0) {
                 $("#listOrg_status").show();
@@ -145,10 +170,11 @@ App = {
             orgList.forEach(org => {
                 var orgName = org[0];
                 var orgId = org[1];
-                var orgAttendance = web3.fromWei(org[2],'wei').toNumber();
-                var orgMaxAttendance = web3.fromWei(org[3],'wei').toNumber();
-                var orgDate = new Date(web3.fromWei(org[4],'wei').toNumber());
-                App.generateListItem(orgName, orgId, orgAttendance, orgMaxAttendance, orgDate);
+                var orgAttendance = web3.fromWei(org[2], 'wei').toNumber();
+                var orgMaxAttendance = web3.fromWei(org[3], 'wei').toNumber();
+                var orgDate = moment(web3.fromWei(org[4], 'wei').toNumber(), "x").format("DD-MM-YYYY HH:mm");
+                var isAttending = org[5];
+                App.generateListItem(orgName, orgId, orgAttendance, orgMaxAttendance, orgDate, isAttending);
             });
 
         }).catch(function (err) {
@@ -156,15 +182,23 @@ App = {
         });
     },
 
-    generateListItem: function (orgName, orgId, orgAttendance, orgMaxAttendance, orgDate) {
-        $("#listOrg_list").append(
-            $("<li>").attr("id", orgId).attr("class", "list-group-item").append(
-                $("<div>").attr("class", "d-flex align-items-center").append(
-                    $("<span>").attr("class", "mr-auto p-1 flex-column").append(
-                        $("<div>").attr("class", "p-1").text("Name: " + orgName)).append(
-                            $("<div>").attr("class", "p-1").text("Attendance: " + orgAttendance + "/" + orgMaxAttendance)).append(
-                                $("<div>").attr("class", "p-1").text("Date: " + orgDate))).append(
-                                    $("<button>").attr("type", "button").attr("class", "btn btn-primary p-2 btn-attend").text("Attend"))));
+    generateListItem: function (orgName, orgId, orgAttendance, orgMaxAttendance, orgDate, isAttending) {
+        var listItem = $("<li>").attr("id", orgId).attr("class", "list-group-item");
+        var divContainer = $("<div>").attr("class", "d-flex align-items-center");
+        var infoColumn = $("<span>").attr("class", "mr-auto p-1 flex-column");
+        var el_orgName = $("<div>").attr("class", "p-1").text("Name: " + orgName);
+        var el_orgAttendance = $("<div>").attr("class", "p-1").text("Attendance: " + orgAttendance + "/" + orgMaxAttendance);
+        var el_orgDate = $("<div>").attr("class", "p-1").text("Date: " + orgDate);
+        if (isAttending)
+            var el_attendBtn = $("<button>").attr("type", "button").attr("class", "btn btn-outline-danger p-2 btn-cancelAttend").text("Cancel");
+        else
+            var el_attendBtn = $("<button>").attr("type", "button").attr("class", "btn btn-outline-success p-2 btn-attend").text("Attend");
+
+        infoColumn.append(el_orgName).append(el_orgAttendance).append(el_orgDate);
+        divContainer.append(infoColumn);
+        divContainer.append(el_attendBtn);
+        listItem.append(divContainer);
+        $("#listOrg_list").append(listItem);
     }
 
 }; //End of App
