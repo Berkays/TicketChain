@@ -1,0 +1,20 @@
+FROM ubuntu:xenial
+
+RUN apt-get update \
+     && apt-get install -y wget \
+     && rm -rf /var/lib/apt/lists/* 
+
+WORKDIR "/opt"
+ARG BINARY="geth-alltools-linux-amd64-1.8.1-1e67410e.tar.gz"
+RUN wget "https://gethstore.blob.core.windows.net/builds/$BINARY"
+RUN tar -xzvf $BINARY --strip 1
+RUN rm $BINARY
+
+ADD ./genesis.json ./genesis.json
+
+
+EXPOSE 8545
+EXPOSE 30303
+
+RUN ./geth --datadir datadir/ init genesis.json
+CMD ["./geth","--networkid", "15", "--nodiscover", "--datadir", "datadir/", "--port", "30303", "--rpc", "--rpcport", "8545", "--rpccorsdomain", "*", "--rpcaddr", "0.0.0.0"]

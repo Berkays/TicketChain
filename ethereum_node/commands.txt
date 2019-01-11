@@ -1,0 +1,21 @@
+docker build -t ethnode .
+docker run --name n_1 -v ./ethereum_node/datadir:/opt/datadir -p 8545:8545 -p 30303:30303 ethnode
+docker exec -it n_1 /bin/bash
+
+
+./geth --datadir datadir/ attach
+
+CONSOLE:
+
+personal.newAccount()
+personal.unlockAccount()
+personal.unlockAccount(eth.accounts[0],'12341234',0)
+eth.getBalance(eth.accounts[0])
+
+miner.start()
+miner.stop()
+
+admin.nodeInfo
+admin.addPeer()
+
+docker cp n_1:/opt/datadir/keystore .\ethereum_node\keystore
