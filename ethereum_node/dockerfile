@@ -12,9 +12,11 @@ RUN rm $BINARY
 
 ADD ./genesis.json ./genesis.json
 
-
 EXPOSE 8545
 EXPOSE 30303
 
+RUN echo "12341234" > password
+
 RUN ./geth --datadir datadir/ init genesis.json
+RUN ./geth account new --datadir datadir/ --password password
 CMD ["./geth","--networkid", "15", "--nodiscover", "--datadir", "datadir/", "--port", "30303", "--rpc", "--rpcport", "8545", "--rpccorsdomain", "*", "--rpcaddr", "0.0.0.0"]
